@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Red Ball — 90 Level, 3 Dunyo, 3 Boss va Yashirin Portallar (Barchasi Ochiq)</title>
+  <link rel="stylesheet" href="./index.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <!-- Yuqori HUD paneli -->
+    <header class="hud" aria-label="O'yin boshqaruv paneli">
+      <div class="hud-group hud-left">
+        <button id="levelSelectBtn" class="btn btn-chip" type="button" title="Bosqichni tanlash">
+          <span class="chip-label">Bosqich:</span>
+          <strong id="hudLevel">1 / 90</strong>
+          <span class="caret">▾</span>
+        </button>
+
+        <span id="hudWorldBadge" class="world-badge">1-Dunyo: Yashil Vodiy</span>
+
+        <div class="stat-pill" title="Jonlar">
+          <span class="stat-icon heart-icon">♥</span>
+          <span id="hudLives">3</span>
+        </div>
+
+        <div class="stat-pill" title="Yig'ilgan yulduzlar">
+          <span class="stat-icon star-icon">★</span>
+          <span id="hudStars">0 / 3</span>
+          <span id="hudTotalStars" class="muted-sub">(Jami: 0)</span>
+        </div>
+      </div>
+
+      <div class="hud-group hud-right">
+        <button id="restartBtn" class="btn btn-icon" type="button" title="Bosqichni qayta boshlash (R)" aria-label="Qayta boshlash">
+          ↻
+        </button>
+        <button id="soundBtn" class="btn btn-icon" type="button" title="Ovozni yoqish/o'chirish" aria-label="Ovoz">
+          🔊
+        </button>
+      </div>
+    </header>
+
+    <!-- Markaziy o'yin sahnasi -->
+    <main class="stage-wrapper">
+      <div class="canvas-frame">
+        <canvas id="gameCanvas" width="960" height="540"></canvas>
+
+        <!-- Bosqich nomi banneri -->
+        <div id="levelBanner" class="level-banner" aria-live="polite">
+          <span id="bannerTitle">1-bosqich</span>
+        </div>
+
+        <!-- Bosqich tanlash modali -->
+        <div id="levelModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="levelModalTitle">
+          <div class="modal-card modal-wide">
+            <div class="modal-header">
+              <h2 id="levelModalTitle">Bosqichlar (Barchasi Ochiq: 1–90 + Yashirin)</h2>
+              <button id="closeLevelModalBtn" class="btn btn-icon btn-sm" type="button" aria-label="Yopish">✕</button>
+            </div>
+
+            <div class="world-tabs" role="tablist">
+              <button class="world-tab active" data-tab="w1" type="button">1–30: Vodiy</button>
+              <button class="world-tab" data-tab="w2" type="button">31–60: Kanyon</button>
+              <button class="world-tab" data-tab="w3" type="button">61–90: Tun</button>
+              <button class="world-tab secret-tab" data-tab="secret" type="button">✦ Yashirin (10)</button>
+            </div>
+
+            <div id="levelGrid" class="level-grid"></div>
+
+            <div class="modal-footer-note">
+              Barcha darajalar ochiq! 30, 60 va 90-bosqichlarda <strong>Boss</strong> bor. Yulduzlar progressi <code>localStorage</code>da saqlanadi.
+            </div>
+          </div>
+        </div>
+
+        <!-- Bosqich yakunlandi modali -->
+        <div id="winModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="winModalTitle">
+          <div class="modal-card">
+            <div class="badge-pill success-badge" id="winBadgeText">BOSQICH YAKUNLANDI</div>
+            <h2 id="winModalTitle">Ajoyib g‘alaba!</h2>
+            <p id="winSubtitle" class="modal-desc">Barcha to‘siqlardan muvaffaqiyatli o‘tdingiz.</p>
+            <div id="winStarsDisplay" class="stars-showcase" aria-label="Yulduzlar natijasi">
+              <span class="showcase-star">★</span>
+              <span class="showcase-star">★</span>
+              <span class="showcase-star">★</span>
+            </div>
+            <div class="modal-actions">
+              <button id="replayWinBtn" class="btn btn-secondary" type="button">Qayta o‘ynash</button>
+              <button id="nextLevelBtn" class="btn btn-primary" type="button">Keyingi bosqich →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- O'yin tugadi modali -->
+        <div id="loseModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="loseModalTitle">
+          <div class="modal-card">
+            <div class="badge-pill danger-badge">JONLAR TUGADI</div>
+            <h2 id="loseModalTitle">O‘yin tugadi</h2>
+            <p id="loseSubtitle" class="modal-desc">Tikanlar, dushmanlar yoki jarlikdan ehtiyot bo‘ling.</p>
+            <div class="modal-actions">
+              <button id="loseLevelSelectBtn" class="btn btn-secondary" type="button">Bosqichlar</button>
+              <button id="retryBtn" class="btn btn-primary" type="button">Qayta urinish</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Pastki boshqaruv: mobil tugmalar + klaviatura yo'riqnomasi -->
+    <footer class="controls-bar">
+      <div class="touch-controls" aria-label="Ekran boshqaruv tugmalari">
+        <div class="move-cluster">
+          <button id="btnLeft" class="touch-btn" type="button" aria-label="Chapga yurish">
+            ◀
+          </button>
+          <button id="btnRight" class="touch-btn" type="button" aria-label="O'ngga yurish">
+            ▶
+          </button>
+        </div>
+        <button id="btnJump" class="touch-btn jump-btn" type="button" aria-label="Sakrash">
+          ▲ SAKRASH
+        </button>
+      </div>
+
+      <div class="key-hints">
+        <span><kbd>A</kbd> / <kbd>◀</kbd> Chapga</span>
+        <span><kbd>D</kbd> / <kbd>▶</kbd> O‘ngga</span>
+        <span><kbd>W</kbd> / <kbd>Space</kbd> / <kbd>▲</kbd> Sakrash</span>
+        <span><kbd>R</kbd> Qayta boshlash</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="./index.js"></script>
+</body>
+</html>
